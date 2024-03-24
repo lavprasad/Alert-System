@@ -4,15 +4,20 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
+# Imported the create_database function from database.py
+from database import create_database
 
 app = Flask(__name__)
 
 # Function to connect to the database
+#This function connect_to_database takes the name of the SQLite database file as input, connects to the database, and returns the connection object.
 def connect_to_database(database_name):
     conn = sqlite3.connect(database_name)
     return conn
 
 # Function to check for low stock items and expiring items
+#This function check_items takes the database connection object as input.
+#It fetches items that have a quantity less than 10 (low stock) and items that have an expiry date within the next 7 days (expiring items)
 def check_items(conn):
     cursor = conn.cursor()
 
@@ -29,6 +34,9 @@ def check_items(conn):
     return low_stock_items, expiring_items
 
 # Function to send email notification
+#This function send_email_notification sends an email notification.
+#It takes the sender's email, sender's password, receiver's email, email subject, and email body as input.
+#It creates an email message with the provided information, connects to the SMTP server, logs in with the sender's email and password, sends the email, and closes the connection.
 def send_email_notification(sender_email, sender_password, receiver_email, subject, body):
     msg = MIMEMultipart()
     msg['From'] = sender_email
@@ -46,6 +54,8 @@ def send_email_notification(sender_email, sender_password, receiver_email, subje
 
 # Route to display notifications
 @app.route('/')
+    #This is the main function of the program.
+    #It connects to the database, checks for low stock and expiring items, closes the database connection, and then sends email notifications if there are any low stock or expiring items.
 def display_notifications():
     # Connect to the database
     conn = connect_to_database('inventory.db')
@@ -78,4 +88,6 @@ def display_notifications():
     return render_template('notifications.html')
 
 if __name__ == "__main__":
+    # Call the create_database function when the application is run
+    create_database('inventory.db')
     app.run(debug=True)
